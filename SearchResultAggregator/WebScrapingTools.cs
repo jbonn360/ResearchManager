@@ -21,8 +21,7 @@ namespace SearchResultAggregator
         IWebDriver driver;
         public WebScrapingTools()
         {
-            
-                
+           
         }
 
         public List<string> GetDataFromHydi(string uri)
@@ -43,13 +42,10 @@ namespace SearchResultAggregator
             //While not done with the whole search
             while (!done)
             {
-                // Initialising driver
-                var options = new ChromeOptions();
-                options.AddArgument("--start-maximized");
-                driver = new ChromeDriver(options);   
+                InitChromeBrowser();
 
                 //Gathering and adding the data retrieved from the this loop
-                result.AddRange(GetDataFromHyDi(uri, driver, ref totalRecordsFound, ref done, recordLimit));
+                result.AddRange(GetDataChunkFromHyDi(uri, driver, ref totalRecordsFound, ref done, recordLimit));
 
                 //Closing chrome driver - must be done AFTER driver objects are no longer needed
                 driver.Quit();
@@ -65,8 +61,9 @@ namespace SearchResultAggregator
 
             return result;
             
-        }
-        private List<string> GetDataFromHyDi(string uri, IWebDriver driver, ref int totalRecordsFound, ref bool done, int recordLimit)
+        }        
+
+        private List<string> GetDataChunkFromHyDi(string uri, IWebDriver driver, ref int totalRecordsFound, ref bool done, int recordLimit)
         {           
             //Go to page
             driver.Navigate().GoToUrl(uri);
@@ -171,12 +168,69 @@ namespace SearchResultAggregator
 
         public List<string> GetDataFromPubMed(string uri)
         {
-            return null;
+            InitChromeBrowser();
+
+            //Go to page
+            driver.Navigate().GoToUrl(uri);
+
+            List<string> result = new List<string>();
+
+            
+            WebDriverWait waitResultsLoad = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+
+            bool lastPage = false;
+
+            IWebElement nextPageLink = null;
+
+            //Looping through all the pages
+            while (!lastPage)
+            {
+                //Wait for results to load, once they load, retrieves ALL the results on the page
+                IReadOnlyCollection<IWebElement> records = waitResultsLoad.Until((d) => { return ((d.FindElements(By.ClassName("rslt")))); });
+                foreach (var record in records)
+                {
+                    string recordTitle = "";
+                    recordTitle = record.FindElement(By.ClassName("title")).FindElement(By.TagName("a")).Text;
+                    result.Add(recordTitle);
+                }
+
+                //Checking if we're at the last page
+                if (driver.FindElements(By.CssSelector(".inactive.page_link.next")).Count > 0
+                    && driver.FindElements(By.CssSelector(".active.page_link.next")).Count <= 0){
+                    lastPage = true;
+                    break;
+                }
+                else
+                {
+                    //Getting 'Next>' link, if it exists, and clicking it
+                    if(driver.FindElements(By.CssSelector(".active.page_link.next")).Count > 0)
+                    {
+                        nextPageLink = driver.FindElement(By.CssSelector(".active.page_link.next"));
+                        nextPageLink.Click();
+                    }
+                    else
+                    {
+                        //Show error
+                        break;
+                    }
+                    
+                }
+            }
+            return result;
+
         }
 
         public List<string> GetDataFromScholar(string uri)
         {
             return null;
+        }
+
+        private void InitChromeBrowser()
+        {
+            // Initialising driver
+            var options = new ChromeOptions();
+            options.AddArgument("--start-maximized");
+            driver = new ChromeDriver(options);
         }
 
     }

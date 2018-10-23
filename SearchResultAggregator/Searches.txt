@@ -1,0 +1,2 @@
+﻿search.url.1=https://hydi.um.edu.mt/primo-explore/search?query=title,contains,thrombo%20AND%20cancer,AND&tab=default_tab&search_scope=all&sortby=rank&vid=356MALT_VU1&lang=en_US&mode=advanced&offset=0
+search.url.2=https://www.ncbi.nlm.nih.gov/pubmed/?term=thrombo+AND+cancer

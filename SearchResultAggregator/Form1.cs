@@ -12,6 +12,7 @@ using SimpleBrowser;
 using System.IO;
 using System.Diagnostics;
 using System.Configuration;
+using System.Reflection;
 
 namespace SearchResultAggregator
 {
@@ -22,17 +23,39 @@ namespace SearchResultAggregator
             InitializeComponent();
         }
 
+        private List<string> GetSearchUris()
+        {
+            const int BufferSize = 128;
+            List<string> result = new List<string>();
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Searches.txt");
+            using (var fileStream = File.OpenRead(filePath))
+            {
+                using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
+                {
+                    
+                    string line;
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        if (line.StartsWith("search.url."))
+                        {
+                            string[] splitLine = line.Split(new[] { '=' }, 2);
+                            string uri = splitLine[1];
+                            result.Add(uri);
+                        }
+                        else
+                            continue;
+                    }
+                }
+            }
+            return result;
+        }
+
         private void btnGo_Click(object sender, EventArgs e)
         {
-            List<string> searchUrisKeys = 
-                ConfigurationManager.AppSettings.AllKeys.Where(key => key.StartsWith("search.url.")).ToList();
-            List<string> searchUris = new List<string>();
+            List<string> searchUris = GetSearchUris();
             List<string> records = new List<string>();
 
-            foreach(var key in searchUrisKeys)            
-                searchUris.Add(ConfigurationManager.AppSettings[key]);            
-
-            foreach(var uri in searchUris)
+            foreach (var uri in searchUris)
             {
                 //Check if uri is empty
                 if (String.IsNullOrEmpty(uri))
@@ -68,6 +91,7 @@ namespace SearchResultAggregator
             records.Sort();
 
             //Display statistics
+            lblSearches.Text = searchUris.Count.ToString();
             lblTotalHits.Text = totalRecordsHit.ToString();
             lblDuplicates.Text = duplicatesFound.ToString();
 

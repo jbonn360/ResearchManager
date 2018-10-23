@@ -34,6 +34,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.lblTotalHits = new System.Windows.Forms.Label();
             this.lblDuplicates = new System.Windows.Forms.Label();
+            this.lblSearches = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnGo
@@ -41,7 +43,7 @@
             this.btnGo.Location = new System.Drawing.Point(26, 11);
             this.btnGo.Margin = new System.Windows.Forms.Padding(2);
             this.btnGo.Name = "btnGo";
-            this.btnGo.Size = new System.Drawing.Size(578, 39);
+            this.btnGo.Size = new System.Drawing.Size(554, 39);
             this.btnGo.TabIndex = 2;
             this.btnGo.Text = "Go!";
             this.btnGo.UseVisualStyleBackColor = true;
@@ -60,7 +62,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(647, 13);
+            this.label1.Location = new System.Drawing.Point(596, 9);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(93, 13);
             this.label1.TabIndex = 4;
@@ -69,7 +71,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(647, 37);
+            this.label2.Location = new System.Drawing.Point(596, 33);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(93, 13);
             this.label2.TabIndex = 5;
@@ -78,7 +80,7 @@
             // lblTotalHits
             // 
             this.lblTotalHits.AutoSize = true;
-            this.lblTotalHits.Location = new System.Drawing.Point(746, 14);
+            this.lblTotalHits.Location = new System.Drawing.Point(695, 9);
             this.lblTotalHits.Name = "lblTotalHits";
             this.lblTotalHits.Size = new System.Drawing.Size(13, 13);
             this.lblTotalHits.TabIndex = 6;
@@ -87,17 +89,37 @@
             // lblDuplicates
             // 
             this.lblDuplicates.AutoSize = true;
-            this.lblDuplicates.Location = new System.Drawing.Point(746, 37);
+            this.lblDuplicates.Location = new System.Drawing.Point(695, 33);
             this.lblDuplicates.Name = "lblDuplicates";
             this.lblDuplicates.Size = new System.Drawing.Size(13, 13);
             this.lblDuplicates.TabIndex = 7;
             this.lblDuplicates.Text = "0";
+            // 
+            // lblSearches
+            // 
+            this.lblSearches.AutoSize = true;
+            this.lblSearches.Location = new System.Drawing.Point(832, 9);
+            this.lblSearches.Name = "lblSearches";
+            this.lblSearches.Size = new System.Drawing.Size(13, 13);
+            this.lblSearches.TabIndex = 9;
+            this.lblSearches.Text = "0";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(737, 9);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(88, 13);
+            this.label4.TabIndex = 8;
+            this.label4.Text = "Searches Found:";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(868, 626);
+            this.Controls.Add(this.lblSearches);
+            this.Controls.Add(this.label4);
             this.Controls.Add(this.lblDuplicates);
             this.Controls.Add(this.lblTotalHits);
             this.Controls.Add(this.label2);
@@ -119,6 +141,8 @@
         private System.Windows.Forms.Label lblDuplicates;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblSearches;
+        private System.Windows.Forms.Label label4;
     }
 }
 
