@@ -90,7 +90,7 @@ namespace SearchResultAggregator
             {
                 case "hydi.um.edu.mt":
                     {
-                        records = wst.GetDataFromHyDi(uri);
+                        records = wst.GetDataFromHydi(uri);
                     }
                     break;
                 case "www.ncbi.nlm.nih.gov":
