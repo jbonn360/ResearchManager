@@ -1,0 +1,120 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Net;
+using SimpleBrowser;
+using System.IO;
+using System.Diagnostics;
+using System.Configuration;
+
+namespace SearchResultAggregator
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void btnGo_Click(object sender, EventArgs e)
+        {
+            List<string> searchUrisKeys = 
+                ConfigurationManager.AppSettings.AllKeys.Where(key => key.StartsWith("search.url.")).ToList();
+            List<string> searchUris = new List<string>();
+            List<string> records = new List<string>();
+
+            foreach(var key in searchUrisKeys)            
+                searchUris.Add(ConfigurationManager.AppSettings[key]);            
+
+            foreach(var uri in searchUris)
+            {
+                //Check if uri is empty
+                if (String.IsNullOrEmpty(uri))
+                {
+                    //Show message
+                    continue;
+                }
+
+                //Check if entered value is URI
+                Uri uriResult;
+                bool result = Uri.TryCreate(uri, UriKind.Absolute, out uriResult)
+                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                if (!result)
+                {
+                    //Show error message
+                    continue;
+                }
+
+                //Adding newly gathered data to master list
+                records.AddRange(GetData(uri));
+            }
+
+            //Total records retrieved
+            int totalRecordsHit = records.Count;
+
+            //Remove duplicates
+            records = records.Distinct().ToList();
+
+            //The ones which have been removed are duplicates
+            int duplicatesFound = totalRecordsHit - records.Count;
+
+            //Sort list in alphabetical order
+            records.Sort();
+
+            //Display statistics
+            lblTotalHits.Text = totalRecordsHit.ToString();
+            lblDuplicates.Text = duplicatesFound.ToString();
+
+            //Display list
+            foreach (var record in records)
+            {
+                textBox2.AppendText(record);
+                textBox2.AppendText(Environment.NewLine);
+                textBox2.AppendText(Environment.NewLine);
+            }                                 
+        }
+
+        private List<string> GetData(string uri)
+        {
+            Uri uriObj = new Uri(uri);
+            WebScrapingTools wst = new WebScrapingTools();
+            List<string> records = new List<string>();
+
+            switch (uriObj.Host)
+            {
+                case "hydi.um.edu.mt":
+                    {
+                        records = wst.GetDataFromHyDi(uri);
+                    }
+                    break;
+                case "www.ncbi.nlm.nih.gov":
+                    {
+                        records = wst.GetDataFromPubMed(uri);
+                    }
+                    break;
+                case "scholar.google.com":
+                    {
+                        records = wst.GetDataFromScholar(uri);
+                    }
+                    break;
+                default:
+                    {
+                        //Show error message
+                        return null;
+                    }
+            }
+
+            return records;
+        }
+
+        
+
+
+    }
+}
