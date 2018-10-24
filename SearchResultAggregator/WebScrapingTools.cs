@@ -222,7 +222,62 @@ namespace SearchResultAggregator
 
         public List<string> GetDataFromScholar(string uri)
         {
-            return null;
+            InitChromeBrowser();
+
+            //Go to page
+            driver.Navigate().GoToUrl(uri);
+
+            List<string> result = new List<string>();
+
+            WebDriverWait waitResultsLoad = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+
+            bool lastPage = false;
+
+            IWebElement nextPageLink = null;
+
+            //Looping through all the pages
+            while (!lastPage)
+            {
+                //Wait for results to load, once they load, retrieves ALL the results on the page
+                IReadOnlyCollection<IWebElement> records = waitResultsLoad.Until((d) => { return ((d.FindElements(By.CssSelector(".gs_r.gs_or.gs_scl")))); });
+                foreach (var record in records)
+                {
+                    string recordTitle = "";
+                    IWebElement titleContainer = record.FindElement(By.ClassName("gs_ri")).FindElement(By.ClassName("gs_rt"));
+
+                    
+                    if(titleContainer.FindElements(By.TagName("a")).Count > 0)
+                    {
+                        //If source is a book/journal/article etc..
+                        recordTitle = titleContainer.FindElement(By.TagName("a")).Text;
+                    }
+                    else
+                    {
+                        //If it is a citation, it won't have a link, so just grab the text 
+                        //and remove the '[CITATION] ' tag
+                        recordTitle = titleContainer.Text.Replace("[CITATION] ", "");
+                        recordTitle = recordTitle + " [CITATION]";
+                    }
+                        
+                    result.Add(recordTitle);
+                }
+
+                IWebElement navigationDiv = driver.FindElement(By.Id("gs_n"));
+
+
+                //Checking if we're at the last page
+                if (navigationDiv.FindElements(By.CssSelector(".gs_ico.gs_ico_nav_next")).Count > 0)
+                {
+                    nextPageLink = navigationDiv.FindElement(By.CssSelector(".gs_ico.gs_ico_nav_next"));
+                    nextPageLink.Click();
+                }
+                else
+                {
+                    lastPage = true;
+                    break;
+                }
+            }
+            return result;
         }
 
         private void InitChromeBrowser()
