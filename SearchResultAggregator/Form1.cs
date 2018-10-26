@@ -114,7 +114,8 @@ namespace SearchResultAggregator
             {
                 case "hydi.um.edu.mt":
                     {
-                        records = wst.GetDataFromHydi(uri);
+                        //records = wst.GetDataFromHydi(uri);
+                        records = wst.GetDataFromHyDi(uri);
                     }
                     break;
                 case "www.ncbi.nlm.nih.gov":
@@ -136,9 +137,5 @@ namespace SearchResultAggregator
 
             return records;
         }
-
-        
-
-
     }
 }
