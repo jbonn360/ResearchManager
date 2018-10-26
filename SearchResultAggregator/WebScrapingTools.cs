@@ -91,12 +91,20 @@ namespace SearchResultAggregator
             return result;
         }
 
-        public List<string> GetDataFromPubMed(string uri)
+        public List<string> GetDataFromPubMed(string uri, PubMedOptions options)
         {
             InitChromeBrowser();
 
             //Go to page
             driver.Navigate().GoToUrl(uri);
+
+            //Wait for first page to load
+            new WebDriverWait(driver, TimeSpan.FromSeconds(20))
+                    .Until(d => ((IJavaScriptExecutor)d)
+                                .ExecuteScript("return document.readyState").Equals("complete"));
+
+            //Setting filters
+            TacklePubMedFilters(options);
 
             List<string> result = new List<string>();
 
@@ -211,6 +219,58 @@ namespace SearchResultAggregator
             var options = new ChromeOptions();
             options.AddArgument("--start-maximized");
             driver = new ChromeDriver(options);
+        }
+
+        private void TacklePubMedFilters(PubMedOptions options)
+        {
+            //Get filters section
+            IWebElement filtersDiv = driver.FindElement(By.Id("faceted_search"));
+
+            //Activate filters
+            if (options.Abstract)
+                filtersDiv.FindElement(By.LinkText("Abstract")).Click();
+
+            if (options.FreeFullText)
+                filtersDiv.FindElement(By.LinkText("Free full text")).Click();
+
+            if (options.FullText)
+            {
+                filtersDiv.FindElement(By.LinkText("Full text")).Click();
+                Thread.Sleep(2000);
+            }
+                
+
+            if (options.Humans)
+                filtersDiv.FindElement(By.LinkText("Humans")).Click();
+
+            if (options.OtherAnimals)
+                filtersDiv.FindElement(By.LinkText("Other Animals")).Click();
+
+            if (options.PublicationFrom != null && options.PublicationTo != null)
+            {
+                filtersDiv.FindElement(By.Id("facet_date_rangeds1")).Click();
+
+                //Wait for prompt to show
+                IWebElement datePrompt = new WebDriverWait(driver, TimeSpan.FromSeconds(5))
+                    .Until((d) => { return d.FindElement(By.Id("facet_date_range_divds1")); });
+
+                //Setting textboxes
+                //Year, month, day From
+                datePrompt.FindElement(By.Id("facet_date_st_yeards1")).SendKeys(
+                    options.PublicationFrom.Year.ToString());
+                datePrompt.FindElement(By.Id("facet_date_st_monthds1")).SendKeys(
+                    options.PublicationFrom.Month.ToString());
+                datePrompt.FindElement(By.Id("facet_date_st_dayds1")).SendKeys(
+                    options.PublicationFrom.Day.ToString());
+                //Year, month, day To
+                datePrompt.FindElement(By.Id("facet_date_end_yeards1")).SendKeys(
+                    options.PublicationTo.Year.ToString());
+                datePrompt.FindElement(By.Id("facet_date_end_monthds1")).SendKeys(
+                    options.PublicationTo.Month.ToString());
+                datePrompt.FindElement(By.Id("facet_date_end_dayds1")).SendKeys(
+                    options.PublicationTo.Day.ToString());
+
+            }
         }
 
     }

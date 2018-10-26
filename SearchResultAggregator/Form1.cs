@@ -120,7 +120,7 @@ namespace SearchResultAggregator
                     break;
                 case "www.ncbi.nlm.nih.gov":
                     {
-                        records = wst.GetDataFromPubMed(uri);
+                        records = wst.GetDataFromPubMed(uri, GetPubMedOptions());
                     }
                     break;
                 case "scholar.google.com":
@@ -136,6 +136,36 @@ namespace SearchResultAggregator
             }
 
             return records;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            lblError.Text = "";
+            dtTo.Value = DateTime.Now;
+        }
+
+        private void chkUseDateFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            dtTo.Enabled = chkUseDateFilter.Checked;
+            dtFrom.Enabled = chkUseDateFilter.Checked;
+        }
+
+        private PubMedOptions GetPubMedOptions()
+        {
+
+            PubMedOptions pmo = new PubMedOptions(
+               chkAbstract.Checked,
+               chkFreeFull.Checked,
+               chkFullText.Checked,
+               chkHumans.Checked,
+               chkAnimals.Checked);
+
+            if (chkUseDateFilter.Checked)
+            {
+                pmo.SetFilterDateRage(dtFrom.Value, dtTo.Value);
+            }
+
+            return pmo;
         }
     }
 }
