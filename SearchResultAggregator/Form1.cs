@@ -55,6 +55,9 @@ namespace SearchResultAggregator
             List<string> searchUris = GetSearchUris();
             List<string> records = new List<string>();
 
+            string errorMessage = "";
+            lblError.Text = "";
+
             foreach (var uri in searchUris)
             {
                 //Check if uri is empty
@@ -75,7 +78,7 @@ namespace SearchResultAggregator
                 }
 
                 //Adding newly gathered data to master list
-                records.AddRange(GetData(uri));
+                records.AddRange(GetData(uri, ref errorMessage));
             }
 
             //Total records retrieved
@@ -94,6 +97,7 @@ namespace SearchResultAggregator
             lblSearches.Text = searchUris.Count.ToString();
             lblTotalHits.Text = totalRecordsHit.ToString();
             lblDuplicates.Text = duplicatesFound.ToString();
+            lblUniques.Text = records.Count.ToString();
 
             //Display list
             foreach (var record in records)
@@ -104,7 +108,7 @@ namespace SearchResultAggregator
             }                                 
         }
 
-        private List<string> GetData(string uri)
+        private List<string> GetData(string uri, ref string errorMessage)
         {
             Uri uriObj = new Uri(uri);
             WebScrapingTools wst = new WebScrapingTools();
@@ -115,22 +119,22 @@ namespace SearchResultAggregator
                 case "hydi.um.edu.mt":
                     {
                         //records = wst.GetDataFromHydi(uri);
-                        records = wst.GetDataFromHyDi(uri);
+                        records = wst.GetDataFromHyDi(uri, ref errorMessage);
                     }
                     break;
                 case "www.ncbi.nlm.nih.gov":
                     {
-                        records = wst.GetDataFromPubMed(uri, GetPubMedOptions());
+                        records = wst.GetDataFromPubMed(uri, GetPubMedOptions(), ref errorMessage);
                     }
                     break;
                 case "scholar.google.com":
                     {
-                        records = wst.GetDataFromScholar(uri);
+                        records = wst.GetDataFromScholar(uri, ref errorMessage);
                     }
                     break;
                 default:
                     {
-                        //Show error message
+                        errorMessage +=  "Error: Host " + uriObj.Host + ", is not currently supported.\n";
                         return null;
                     }
             }

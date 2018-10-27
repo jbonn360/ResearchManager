@@ -24,7 +24,7 @@ namespace SearchResultAggregator
            
         }
 
-        public List<string> GetDataFromHyDi(string uri)
+        public List<string> GetDataFromHyDi(string uri, ref string errorMessage)
         {
             InitChromeBrowser();
 
@@ -42,13 +42,34 @@ namespace SearchResultAggregator
             //Removing the 'Results' section of label text. Example: 230 Results => 230
             string totalResultsFoundStr = lblResCount.Text.Replace("Results", "");
             //Parsing value
-            int totalSearchResults = Convert.ToInt32(totalResultsFoundStr);
+            int totalSearchResults = 0;
+            try
+            {
+                totalSearchResults = Convert.ToInt32(totalResultsFoundStr);
+            }catch(FormatException e)
+            {
+                errorMessage += "Error: Could not parse total search results string on: " 
+                    + new Uri(uri).Host + ", value is: " + totalSearchResults + "\n";
+            }
+
+            int slack = 2;
+            string slackString = ConfigurationManager.AppSettings["SlackInSeconds"];
+            if (String.IsNullOrEmpty(slackString))
+                slackString = "2";
+
+            try
+            {
+                slack = Convert.ToInt32(slackString) * 1000;
+            }catch(FormatException)
+            {
+                errorMessage += "Error: Could not parse slack time value: " + slackString + ", please configure this correctly in App.config.\n";
+            }
 
             //While we haven't retrieved all the records
             while (result.Count < totalSearchResults)
             {
-                //Wait a flat 2 seconds for values to be reset after the re-navigate
-                Thread.Sleep(2000);
+                //Allow some slack to cater for slow computers
+                Thread.Sleep(slack);
 
                 //Gathering and adding the data chunk retrieved from the this loop
                 List<string> currentChunk = GetDataChunkFromHyDi(uri);
@@ -71,6 +92,9 @@ namespace SearchResultAggregator
             //Close browser
             driver.Quit();
 
+            if(result.Count <= 0)            
+                errorMessage += "Error: No search results found for search with host " + new Uri(uri).Host + "\n";
+
             return result;
         }
 
@@ -91,7 +115,7 @@ namespace SearchResultAggregator
             return result;
         }
 
-        public List<string> GetDataFromPubMed(string uri, PubMedOptions options)
+        public List<string> GetDataFromPubMed(string uri, PubMedOptions options, ref string errorMessage)
         {
             InitChromeBrowser();
 
@@ -99,12 +123,16 @@ namespace SearchResultAggregator
             driver.Navigate().GoToUrl(uri);
 
             //Wait for first page to load
-            new WebDriverWait(driver, TimeSpan.FromSeconds(20))
-                    .Until(d => ((IJavaScriptExecutor)d)
-                                .ExecuteScript("return document.readyState").Equals("complete"));
+            new WebDriverWait(driver, TimeSpan.FromSeconds(20)).Until(
+                d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
 
             //Setting filters
             TacklePubMedFilters(options);
+
+            //Wait for page to load
+            new WebDriverWait(driver, TimeSpan.FromSeconds(20))
+                    .Until(d => ((IJavaScriptExecutor)d)
+                                .ExecuteScript("return document.readyState").Equals("complete"));
 
             List<string> result = new List<string>();
 
@@ -143,17 +171,23 @@ namespace SearchResultAggregator
                     }
                     else
                     {
-                        //Show error
+                        errorMessage += "Error: Could not locate 'Next' button on: " + new Uri(uri).Host + "\n";
                         break;
                     }
                     
                 }
             }
+
+            driver.Quit();
+
+            if (result.Count <= 0)
+                errorMessage += "Error: No search results found for search with host " + new Uri(uri).Host + "\n";
+
             return result;
 
         }
 
-        public List<string> GetDataFromScholar(string uri)
+        public List<string> GetDataFromScholar(string uri, ref string errorMessage)
         {
             InitChromeBrowser();
 
@@ -210,6 +244,12 @@ namespace SearchResultAggregator
                     break;
                 }
             }
+
+            driver.Quit();
+
+            if (result.Count <= 0)
+                errorMessage += "Error: No search results found for search with host " + new Uri(uri).Host + "\n";
+
             return result;
         }
 
@@ -223,55 +263,62 @@ namespace SearchResultAggregator
 
         private void TacklePubMedFilters(PubMedOptions options)
         {
-            //Get filters section
-            IWebElement filtersDiv = driver.FindElement(By.Id("faceted_search"));
+            //Wait for filters section to load
+            new WebDriverWait(driver, TimeSpan.FromSeconds(10))
+                .Until(d =>  driver.FindElements(By.Id("faceted_search")).Count > 0);
 
             //Activate filters
-            if (options.Abstract)
-                filtersDiv.FindElement(By.LinkText("Abstract")).Click();
+            if (options.Abstract)            
+                ClickFilterLink("Abstract");
 
-            if (options.FreeFullText)
-                filtersDiv.FindElement(By.LinkText("Free full text")).Click();
-
-            if (options.FullText)
-            {
-                filtersDiv.FindElement(By.LinkText("Full text")).Click();
-                Thread.Sleep(2000);
-            }
+            if (options.FreeFullText)            
+                ClickFilterLink("Free full text");           
                 
+            if (options.FullText)            
+                ClickFilterLink("Full text");
 
-            if (options.Humans)
-                filtersDiv.FindElement(By.LinkText("Humans")).Click();
-
+            if (options.Humans)            
+                ClickFilterLink("Humans"); 
+    
             if (options.OtherAnimals)
-                filtersDiv.FindElement(By.LinkText("Other Animals")).Click();
+                ClickFilterLink("Other Animals"); 
 
-            if (options.PublicationFrom != null && options.PublicationTo != null)
+            if (options.PublicationFrom != DateTime.MinValue && options.PublicationTo != DateTime.MinValue)
             {
-                filtersDiv.FindElement(By.Id("facet_date_rangeds1")).Click();
+                driver.FindElement(By.Id("faceted_search")).FindElement(By.Id("facet_date_rangeds1")).Click();
 
                 //Wait for prompt to show
                 IWebElement datePrompt = new WebDriverWait(driver, TimeSpan.FromSeconds(5))
                     .Until((d) => { return d.FindElement(By.Id("facet_date_range_divds1")); });
 
                 //Setting textboxes
-                //Year, month, day From
-                datePrompt.FindElement(By.Id("facet_date_st_yeards1")).SendKeys(
-                    options.PublicationFrom.Year.ToString());
-                datePrompt.FindElement(By.Id("facet_date_st_monthds1")).SendKeys(
-                    options.PublicationFrom.Month.ToString());
+                //Year, month, day From     
                 datePrompt.FindElement(By.Id("facet_date_st_dayds1")).SendKeys(
                     options.PublicationFrom.Day.ToString());
+                datePrompt.FindElement(By.Id("facet_date_st_monthds1")).SendKeys(
+                    options.PublicationFrom.Month.ToString());
+                datePrompt.FindElement(By.Id("facet_date_st_yeards1")).SendKeys(
+                    options.PublicationFrom.Year.ToString());
+
                 //Year, month, day To
-                datePrompt.FindElement(By.Id("facet_date_end_yeards1")).SendKeys(
-                    options.PublicationTo.Year.ToString());
-                datePrompt.FindElement(By.Id("facet_date_end_monthds1")).SendKeys(
-                    options.PublicationTo.Month.ToString());
                 datePrompt.FindElement(By.Id("facet_date_end_dayds1")).SendKeys(
                     options.PublicationTo.Day.ToString());
+                datePrompt.FindElement(By.Id("facet_date_end_monthds1")).SendKeys(
+                    options.PublicationTo.Month.ToString());
+                datePrompt.FindElement(By.Id("facet_date_end_yeards1")).SendKeys(
+                    options.PublicationTo.Year.ToString());
 
+                //Clicking 'Apply' button
+                datePrompt.FindElement(By.Id("facet_date_range_applyds1")).Click();
             }
         }
+
+        private void ClickFilterLink(string filterLinkText)
+        {
+            driver.FindElement(By.Id("faceted_search")).FindElement(By.LinkText(filterLinkText)).Click();
+        }
+
+
 
     }
 }
