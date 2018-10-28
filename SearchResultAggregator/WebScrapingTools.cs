@@ -24,11 +24,11 @@ namespace SearchResultAggregator
            
         }
 
-        public List<string> GetDataFromHyDi(string uri, ref string errorMessage)
+        public List<Record> GetDataFromHyDi(string uri, ref string errorMessage)
         {
             InitChromeBrowser();
 
-            List<string> result = new List<string>();
+            List<Record> result = new List<Record>();
 
             //Navigating to the uri for the first time
             driver.Navigate().GoToUrl(uri);
@@ -72,7 +72,7 @@ namespace SearchResultAggregator
                 Thread.Sleep(slack);
 
                 //Gathering and adding the data chunk retrieved from the this loop
-                List<string> currentChunk = GetDataChunkFromHyDi(uri);
+                var currentChunk = GetDataChunkFromHyDi(uri);
 
                 //Adding current chunk to main list
                 result.AddRange(currentChunk);
@@ -98,7 +98,7 @@ namespace SearchResultAggregator
             return result;
         }
 
-        private List<string> GetDataChunkFromHyDi(string uri)
+        private List<Record> GetDataChunkFromHyDi(string uri)
         {
             //Waiting for records to load
             WebDriverWait waitRecordsLoad = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
@@ -106,16 +106,17 @@ namespace SearchResultAggregator
                 waitRecordsLoad.Until((d) => { return d.FindElements(By.ClassName("item-title")); });
 
             //Aggregating all the record titles into a list
-            List <string> result = new List<string>();
+            var result = new List<Record>();
             foreach (var record in records)
             {
-                result.Add(record.Text);
+                string link = record.FindElement(By.TagName("a")).GetAttribute("href");
+                result.Add(new Record(record.Text, link));
             }
 
             return result;
         }
 
-        public List<string> GetDataFromPubMed(string uri, PubMedOptions options, ref string errorMessage)
+        public List<Record> GetDataFromPubMed(string uri, PubMedOptions options, ref string errorMessage)
         {
             InitChromeBrowser();
 
@@ -134,7 +135,7 @@ namespace SearchResultAggregator
                     .Until(d => ((IJavaScriptExecutor)d)
                                 .ExecuteScript("return document.readyState").Equals("complete"));
 
-            List<string> result = new List<string>();
+            var result = new List<Record>();
 
             
             WebDriverWait waitResultsLoad = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
@@ -150,9 +151,16 @@ namespace SearchResultAggregator
                 IReadOnlyCollection<IWebElement> records = waitResultsLoad.Until((d) => { return ((d.FindElements(By.ClassName("rslt")))); });
                 foreach (var record in records)
                 {
-                    string recordTitle = "";
-                    recordTitle = record.FindElement(By.ClassName("title")).FindElement(By.TagName("a")).Text;
-                    result.Add(recordTitle);
+                    IWebElement recordTitleElement = record.FindElement(By.ClassName("title")).FindElement(By.TagName("a"));
+                    string title = recordTitleElement.Text;
+                    //Catering for translated articles, which pubmed encloses in []
+                    if(title.StartsWith("[") && title.EndsWith("]."))
+                    {
+                        title = title.Remove(0, 1);
+                        title = title.Remove(title.Length-2, 1);
+                    }
+                    string link = recordTitleElement.GetAttribute("href");
+                    result.Add(new Record(title, link));
                 }
 
                 //Checking if we're at the last page
@@ -187,20 +195,18 @@ namespace SearchResultAggregator
 
         }
 
-        public List<string> GetDataFromScholar(string uri, ref string errorMessage)
+        public List<Record> GetDataFromScholar(string uri, ref string errorMessage)
         {
             InitChromeBrowser();
 
             //Go to page
             driver.Navigate().GoToUrl(uri);
 
-            List<string> result = new List<string>();
+            var result = new List<Record>();
 
             WebDriverWait waitResultsLoad = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
 
             bool lastPage = false;
-
-            IWebElement nextPageLink = null;
 
             //Looping through all the pages
             while (!lastPage)
@@ -209,24 +215,26 @@ namespace SearchResultAggregator
                 IReadOnlyCollection<IWebElement> records = waitResultsLoad.Until((d) => { return ((d.FindElements(By.CssSelector(".gs_r.gs_or.gs_scl")))); });
                 foreach (var record in records)
                 {
-                    string recordTitle = "";
+                    string title = null;
+                    string link = null;
                     IWebElement titleContainer = record.FindElement(By.ClassName("gs_ri")).FindElement(By.ClassName("gs_rt"));
-
                     
                     if(titleContainer.FindElements(By.TagName("a")).Count > 0)
                     {
                         //If source is a book/journal/article etc..
-                        recordTitle = titleContainer.FindElement(By.TagName("a")).Text;
+                        IWebElement recordTitleElement = titleContainer.FindElement(By.TagName("a"));
+                        title = recordTitleElement.Text;
+                        link = recordTitleElement.GetAttribute("href");
                     }
                     else
                     {
                         //If it is a citation, it won't have a link, so just grab the text 
                         //and remove the '[CITATION] ' tag
-                        recordTitle = titleContainer.Text.Replace("[CITATION] ", "");
-                        recordTitle = recordTitle + " [CITATION]";
+                        title = titleContainer.Text.Replace("[CITATION] ", "");
+                        title = title + " [CITATION]";
                     }
                         
-                    result.Add(recordTitle);
+                    result.Add(new Record(title,link));
                 }
 
                 IWebElement navigationDiv = driver.FindElement(By.Id("gs_n"));
@@ -235,7 +243,7 @@ namespace SearchResultAggregator
                 //Checking if we're at the last page
                 if (navigationDiv.FindElements(By.CssSelector(".gs_ico.gs_ico_nav_next")).Count > 0)
                 {
-                    nextPageLink = navigationDiv.FindElement(By.CssSelector(".gs_ico.gs_ico_nav_next"));
+                    IWebElement nextPageLink = navigationDiv.FindElement(By.CssSelector(".gs_ico.gs_ico_nav_next"));
                     nextPageLink.Click();
                 }
                 else

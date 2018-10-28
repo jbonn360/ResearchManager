@@ -30,7 +30,6 @@
         {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnGo = new System.Windows.Forms.Button();
-            this.textBox2 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.lblTotalHits = new System.Windows.Forms.Label();
@@ -55,9 +54,20 @@
             this.lblUniques = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.btnUndo = new System.Windows.Forms.Button();
             this.duplicate = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.fulltext = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.titleabs = new System.Windows.Forms.DataGridViewButtonColumn();
             this.title = new System.Windows.Forms.DataGridViewLinkColumn();
+            this.lblFullText = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.lblTitleAbs = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.lblUnmarked = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.btnCopyUnmarked = new System.Windows.Forms.Button();
+            this.btnCopyTitleAbs = new System.Windows.Forms.Button();
+            this.btnCopyFullText = new System.Windows.Forms.Button();
+            this.lblCopied = new System.Windows.Forms.Label();
             this.grpbPubMedOptions.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -67,30 +77,19 @@
             // 
             // btnGo
             // 
-            this.btnGo.Location = new System.Drawing.Point(513, 14);
+            this.btnGo.Location = new System.Drawing.Point(525, 14);
             this.btnGo.Margin = new System.Windows.Forms.Padding(2);
             this.btnGo.Name = "btnGo";
-            this.btnGo.Size = new System.Drawing.Size(334, 28);
+            this.btnGo.Size = new System.Drawing.Size(424, 28);
             this.btnGo.TabIndex = 2;
             this.btnGo.Text = "Go!";
             this.btnGo.UseVisualStyleBackColor = true;
             this.btnGo.Click += new System.EventHandler(this.btnGo_Click);
             // 
-            // textBox2
-            // 
-            this.textBox2.Location = new System.Drawing.Point(26, 572);
-            this.textBox2.Margin = new System.Windows.Forms.Padding(2);
-            this.textBox2.Multiline = true;
-            this.textBox2.Name = "textBox2";
-            this.textBox2.ReadOnly = true;
-            this.textBox2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox2.Size = new System.Drawing.Size(821, 102);
-            this.textBox2.TabIndex = 3;
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(514, 71);
+            this.label1.Location = new System.Drawing.Point(526, 71);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(93, 13);
             this.label1.TabIndex = 4;
@@ -99,7 +98,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(648, 53);
+            this.label2.Location = new System.Drawing.Point(658, 53);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(93, 13);
             this.label2.TabIndex = 5;
@@ -108,7 +107,7 @@
             // lblTotalHits
             // 
             this.lblTotalHits.AutoSize = true;
-            this.lblTotalHits.Location = new System.Drawing.Point(608, 71);
+            this.lblTotalHits.Location = new System.Drawing.Point(628, 71);
             this.lblTotalHits.Name = "lblTotalHits";
             this.lblTotalHits.Size = new System.Drawing.Size(13, 13);
             this.lblTotalHits.TabIndex = 6;
@@ -117,7 +116,7 @@
             // lblDuplicates
             // 
             this.lblDuplicates.AutoSize = true;
-            this.lblDuplicates.Location = new System.Drawing.Point(742, 53);
+            this.lblDuplicates.Location = new System.Drawing.Point(752, 53);
             this.lblDuplicates.Name = "lblDuplicates";
             this.lblDuplicates.Size = new System.Drawing.Size(13, 13);
             this.lblDuplicates.TabIndex = 7;
@@ -126,7 +125,7 @@
             // lblSearches
             // 
             this.lblSearches.AutoSize = true;
-            this.lblSearches.Location = new System.Drawing.Point(608, 53);
+            this.lblSearches.Location = new System.Drawing.Point(628, 53);
             this.lblSearches.Name = "lblSearches";
             this.lblSearches.Size = new System.Drawing.Size(13, 13);
             this.lblSearches.TabIndex = 9;
@@ -135,7 +134,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(514, 53);
+            this.label4.Location = new System.Drawing.Point(526, 53);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(88, 13);
             this.label4.TabIndex = 8;
@@ -148,7 +147,7 @@
             this.grpbPubMedOptions.Controls.Add(this.groupBox1);
             this.grpbPubMedOptions.Location = new System.Drawing.Point(26, 9);
             this.grpbPubMedOptions.Name = "grpbPubMedOptions";
-            this.grpbPubMedOptions.Size = new System.Drawing.Size(482, 141);
+            this.grpbPubMedOptions.Size = new System.Drawing.Size(494, 141);
             this.grpbPubMedOptions.TabIndex = 10;
             this.grpbPubMedOptions.TabStop = false;
             this.grpbPubMedOptions.Text = "PubMed Options";
@@ -294,7 +293,7 @@
             // 
             this.lblError.AutoSize = true;
             this.lblError.ForeColor = System.Drawing.Color.Red;
-            this.lblError.Location = new System.Drawing.Point(514, 96);
+            this.lblError.Location = new System.Drawing.Point(526, 110);
             this.lblError.Name = "lblError";
             this.lblError.Size = new System.Drawing.Size(75, 13);
             this.lblError.TabIndex = 11;
@@ -303,7 +302,7 @@
             // lblUniques
             // 
             this.lblUniques.AutoSize = true;
-            this.lblUniques.Location = new System.Drawing.Point(742, 71);
+            this.lblUniques.Location = new System.Drawing.Point(752, 71);
             this.lblUniques.Name = "lblUniques";
             this.lblUniques.Size = new System.Drawing.Size(13, 13);
             this.lblUniques.TabIndex = 13;
@@ -312,7 +311,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(648, 70);
+            this.label7.Location = new System.Drawing.Point(658, 70);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(87, 13);
             this.label7.TabIndex = 12;
@@ -323,38 +322,51 @@
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.AllowUserToResizeRows = false;
-            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.duplicate,
+            this.fulltext,
+            this.titleabs,
             this.title});
-            this.dataGridView1.Location = new System.Drawing.Point(26, 156);
+            this.dataGridView1.Location = new System.Drawing.Point(26, 185);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(821, 402);
+            this.dataGridView1.Size = new System.Drawing.Size(925, 487);
             this.dataGridView1.TabIndex = 14;
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
-            // 
-            // btnUndo
-            // 
-            this.btnUndo.Enabled = false;
-            this.btnUndo.Location = new System.Drawing.Point(761, 52);
-            this.btnUndo.Name = "btnUndo";
-            this.btnUndo.Size = new System.Drawing.Size(86, 35);
-            this.btnUndo.TabIndex = 15;
-            this.btnUndo.Text = "Undo Mark Duplicate";
-            this.btnUndo.UseVisualStyleBackColor = true;
-            this.btnUndo.Click += new System.EventHandler(this.btnUndo_Click);
+            this.dataGridView1.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridView1_ColumnHeaderMouseClick);
             // 
             // duplicate
             // 
-            this.duplicate.HeaderText = "Duplicate?";
+            this.duplicate.HeaderText = "Mark";
             this.duplicate.Name = "duplicate";
-            this.duplicate.Text = "Mark";
+            this.duplicate.Text = "Duplicate";
+            this.duplicate.ToolTipText = "Mark/Unmark as duplicate";
             this.duplicate.UseColumnTextForButtonValue = true;
-            this.duplicate.Width = 64;
+            this.duplicate.Width = 55;
+            // 
+            // fulltext
+            // 
+            this.fulltext.HeaderText = "Mark Discarded";
+            this.fulltext.Name = "fulltext";
+            this.fulltext.Text = "Full Text";
+            this.fulltext.ToolTipText = "Mark/unmark as discarded upton reading full text";
+            this.fulltext.UseColumnTextForButtonValue = true;
+            this.fulltext.Width = 55;
+            // 
+            // titleabs
+            // 
+            this.titleabs.HeaderText = "Mark Discarded";
+            this.titleabs.Name = "titleabs";
+            this.titleabs.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.titleabs.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.titleabs.Text = "Title & Abs.";
+            this.titleabs.ToolTipText = "Mark/unmark as discarded upon reading title & abstract";
+            this.titleabs.UseColumnTextForButtonValue = true;
+            this.titleabs.Width = 65;
             // 
             // title
             // 
@@ -362,16 +374,122 @@
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.title.DefaultCellStyle = dataGridViewCellStyle1;
             this.title.HeaderText = "Study Title";
+            this.title.MinimumWidth = 500;
             this.title.Name = "title";
             this.title.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.title.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // lblFullText
+            // 
+            this.lblFullText.AutoSize = true;
+            this.lblFullText.Location = new System.Drawing.Point(936, 71);
+            this.lblFullText.Name = "lblFullText";
+            this.lblFullText.Size = new System.Drawing.Size(13, 13);
+            this.lblFullText.TabIndex = 18;
+            this.lblFullText.Text = "0";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(787, 70);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(104, 13);
+            this.label8.TabIndex = 17;
+            this.label8.Text = "Discarded - Full Text";
+            // 
+            // lblTitleAbs
+            // 
+            this.lblTitleAbs.AutoSize = true;
+            this.lblTitleAbs.Location = new System.Drawing.Point(936, 53);
+            this.lblTitleAbs.Name = "lblTitleAbs";
+            this.lblTitleAbs.Size = new System.Drawing.Size(13, 13);
+            this.lblTitleAbs.TabIndex = 16;
+            this.lblTitleAbs.Text = "0";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(787, 53);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(147, 13);
+            this.label10.TabIndex = 15;
+            this.label10.Text = "Discarded - Title and Abstract";
+            // 
+            // lblUnmarked
+            // 
+            this.lblUnmarked.AutoSize = true;
+            this.lblUnmarked.Location = new System.Drawing.Point(628, 90);
+            this.lblUnmarked.Name = "lblUnmarked";
+            this.lblUnmarked.Size = new System.Drawing.Size(13, 13);
+            this.lblUnmarked.TabIndex = 20;
+            this.lblUnmarked.Text = "0";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(526, 90);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(99, 13);
+            this.label9.TabIndex = 19;
+            this.label9.Text = "Unmarked Records";
+            // 
+            // btnCopyUnmarked
+            // 
+            this.btnCopyUnmarked.Location = new System.Drawing.Point(26, 155);
+            this.btnCopyUnmarked.Margin = new System.Windows.Forms.Padding(2);
+            this.btnCopyUnmarked.Name = "btnCopyUnmarked";
+            this.btnCopyUnmarked.Size = new System.Drawing.Size(187, 25);
+            this.btnCopyUnmarked.TabIndex = 21;
+            this.btnCopyUnmarked.Text = "Copy Unmarked Records";
+            this.btnCopyUnmarked.UseVisualStyleBackColor = true;
+            this.btnCopyUnmarked.Click += new System.EventHandler(this.btnCopyUnmarked_Click);
+            // 
+            // btnCopyTitleAbs
+            // 
+            this.btnCopyTitleAbs.Location = new System.Drawing.Point(239, 155);
+            this.btnCopyTitleAbs.Margin = new System.Windows.Forms.Padding(2);
+            this.btnCopyTitleAbs.Name = "btnCopyTitleAbs";
+            this.btnCopyTitleAbs.Size = new System.Drawing.Size(187, 25);
+            this.btnCopyTitleAbs.TabIndex = 22;
+            this.btnCopyTitleAbs.Text = "Copy Discarded - Title and Abstract";
+            this.btnCopyTitleAbs.UseVisualStyleBackColor = true;
+            this.btnCopyTitleAbs.Click += new System.EventHandler(this.btnCopyTitleAbs_Click);
+            // 
+            // btnCopyFullText
+            // 
+            this.btnCopyFullText.Location = new System.Drawing.Point(454, 155);
+            this.btnCopyFullText.Margin = new System.Windows.Forms.Padding(2);
+            this.btnCopyFullText.Name = "btnCopyFullText";
+            this.btnCopyFullText.Size = new System.Drawing.Size(187, 25);
+            this.btnCopyFullText.TabIndex = 23;
+            this.btnCopyFullText.Text = "Copy Discarded - Full Text";
+            this.btnCopyFullText.UseVisualStyleBackColor = true;
+            this.btnCopyFullText.Click += new System.EventHandler(this.btnCopyFullText_Click);
+            // 
+            // lblCopied
+            // 
+            this.lblCopied.AutoSize = true;
+            this.lblCopied.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lblCopied.Location = new System.Drawing.Point(658, 161);
+            this.lblCopied.Name = "lblCopied";
+            this.lblCopied.Size = new System.Drawing.Size(50, 13);
+            this.lblCopied.TabIndex = 24;
+            this.lblCopied.Text = "Message";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(868, 684);
-            this.Controls.Add(this.btnUndo);
+            this.ClientSize = new System.Drawing.Size(972, 684);
+            this.Controls.Add(this.lblCopied);
+            this.Controls.Add(this.btnCopyFullText);
+            this.Controls.Add(this.btnCopyTitleAbs);
+            this.Controls.Add(this.btnCopyUnmarked);
+            this.Controls.Add(this.lblUnmarked);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.lblFullText);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.lblTitleAbs);
+            this.Controls.Add(this.label10);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.lblUniques);
             this.Controls.Add(this.label7);
@@ -383,7 +501,6 @@
             this.Controls.Add(this.lblTotalHits);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.textBox2);
             this.Controls.Add(this.btnGo);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
@@ -404,7 +521,6 @@
 
         #endregion
         private System.Windows.Forms.Button btnGo;
-        private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label lblTotalHits;
         private System.Windows.Forms.Label lblDuplicates;
         private System.Windows.Forms.Label label2;
@@ -429,9 +545,20 @@
         private System.Windows.Forms.Label lblUniques;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.Button btnUndo;
         private System.Windows.Forms.DataGridViewButtonColumn duplicate;
+        private System.Windows.Forms.DataGridViewButtonColumn fulltext;
+        private System.Windows.Forms.DataGridViewButtonColumn titleabs;
         private System.Windows.Forms.DataGridViewLinkColumn title;
+        private System.Windows.Forms.Label lblFullText;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label lblTitleAbs;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Label lblUnmarked;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Button btnCopyUnmarked;
+        private System.Windows.Forms.Button btnCopyTitleAbs;
+        private System.Windows.Forms.Button btnCopyFullText;
+        private System.Windows.Forms.Label lblCopied;
     }
 }
 
