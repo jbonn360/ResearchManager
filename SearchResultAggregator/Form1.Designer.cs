@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnGo = new System.Windows.Forms.Button();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -53,10 +54,15 @@
             this.lblError = new System.Windows.Forms.Label();
             this.lblUniques = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.btnUndo = new System.Windows.Forms.Button();
+            this.duplicate = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.title = new System.Windows.Forms.DataGridViewLinkColumn();
             this.grpbPubMedOptions.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // btnGo
@@ -72,13 +78,13 @@
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(26, 155);
+            this.textBox2.Location = new System.Drawing.Point(26, 572);
             this.textBox2.Margin = new System.Windows.Forms.Padding(2);
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
             this.textBox2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox2.Size = new System.Drawing.Size(821, 462);
+            this.textBox2.Size = new System.Drawing.Size(821, 102);
             this.textBox2.TabIndex = 3;
             // 
             // label1
@@ -312,11 +318,61 @@
             this.label7.TabIndex = 12;
             this.label7.Text = "Unique Records:";
             // 
+            // dataGridView1
+            // 
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.AllowUserToResizeRows = false;
+            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.duplicate,
+            this.title});
+            this.dataGridView1.Location = new System.Drawing.Point(26, 156);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.Size = new System.Drawing.Size(821, 402);
+            this.dataGridView1.TabIndex = 14;
+            this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+            // 
+            // btnUndo
+            // 
+            this.btnUndo.Enabled = false;
+            this.btnUndo.Location = new System.Drawing.Point(761, 52);
+            this.btnUndo.Name = "btnUndo";
+            this.btnUndo.Size = new System.Drawing.Size(86, 35);
+            this.btnUndo.TabIndex = 15;
+            this.btnUndo.Text = "Undo Mark Duplicate";
+            this.btnUndo.UseVisualStyleBackColor = true;
+            this.btnUndo.Click += new System.EventHandler(this.btnUndo_Click);
+            // 
+            // duplicate
+            // 
+            this.duplicate.HeaderText = "Duplicate?";
+            this.duplicate.Name = "duplicate";
+            this.duplicate.Text = "Mark";
+            this.duplicate.UseColumnTextForButtonValue = true;
+            this.duplicate.Width = 64;
+            // 
+            // title
+            // 
+            this.title.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.title.DefaultCellStyle = dataGridViewCellStyle1;
+            this.title.HeaderText = "Study Title";
+            this.title.Name = "title";
+            this.title.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.title.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(868, 626);
+            this.ClientSize = new System.Drawing.Size(868, 684);
+            this.Controls.Add(this.btnUndo);
+            this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.lblUniques);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.lblError);
@@ -340,6 +396,7 @@
             this.groupBox2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -371,6 +428,10 @@
         private System.Windows.Forms.CheckBox chkUseDateFilter;
         private System.Windows.Forms.Label lblUniques;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.Button btnUndo;
+        private System.Windows.Forms.DataGridViewButtonColumn duplicate;
+        private System.Windows.Forms.DataGridViewLinkColumn title;
     }
 }
 

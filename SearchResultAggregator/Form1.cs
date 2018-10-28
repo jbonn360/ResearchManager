@@ -18,9 +18,48 @@ namespace SearchResultAggregator
 {
     public partial class Form1 : Form
     {
+        private List<string> records;
+        private List<string> searchUris;
+        private List<string> markedDuplicates;
+        private int totalRecordsHit, duplicatesFound;
+
         public Form1()
         {
             InitializeComponent();
+            records = new List<string>();
+            searchUris = new List<string>();
+            markedDuplicates = new List<string>();
+            totalRecordsHit = 0;
+            duplicatesFound = 0;
+
+            //Remove me - test
+            records.Add("Study 1");
+            records.Add("Study 2");
+            records.Add("Study 3");
+            records.Add("Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3Study 3");
+            foreach (var record in records)
+            {
+                textBox2.AppendText(record);
+                textBox2.AppendText(Environment.NewLine);
+                textBox2.AppendText(Environment.NewLine);
+            }
+
+
+            UpdateGridView();
+            UpdateStatistics();
+            //dataGridView1.DataSource = records;
+            //dataGridView1.Update();
+
+        }
+
+        private void UpdateGridView()
+        {
+            dataGridView1.Rows.Clear();
+            records.Sort();
+            foreach(var record in records)
+            {
+                dataGridView1.Rows.Add(new object[] { "", record });
+            }
         }
 
         private List<string> GetSearchUris()
@@ -52,8 +91,7 @@ namespace SearchResultAggregator
 
         private void btnGo_Click(object sender, EventArgs e)
         {
-            List<string> searchUris = GetSearchUris();
-            List<string> records = new List<string>();
+            searchUris = GetSearchUris();            
 
             string errorMessage = "";
             lblError.Text = "";
@@ -82,22 +120,18 @@ namespace SearchResultAggregator
             }
 
             //Total records retrieved
-            int totalRecordsHit = records.Count;
+            totalRecordsHit = records.Count;
 
             //Remove duplicates
             records = records.Distinct().ToList();
 
             //The ones which have been removed are duplicates
-            int duplicatesFound = totalRecordsHit - records.Count;
+            duplicatesFound = totalRecordsHit - records.Count;
 
-            //Sort list in alphabetical order
-            records.Sort();
-
-            //Display statistics
-            lblSearches.Text = searchUris.Count.ToString();
             lblTotalHits.Text = totalRecordsHit.ToString();
-            lblDuplicates.Text = duplicatesFound.ToString();
-            lblUniques.Text = records.Count.ToString();
+            UpdateStatistics();
+
+            UpdateGridView();
 
             //Display list
             foreach (var record in records)
@@ -105,7 +139,7 @@ namespace SearchResultAggregator
                 textBox2.AppendText(record);
                 textBox2.AppendText(Environment.NewLine);
                 textBox2.AppendText(Environment.NewLine);
-            }                                 
+            }                                
         }
 
         private List<string> GetData(string uri, ref string errorMessage)
@@ -171,5 +205,42 @@ namespace SearchResultAggregator
 
             return pmo;
         }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridView dgv = (DataGridView)sender;
+            if(dgv.Columns[e.ColumnIndex] is DataGridViewButtonColumn  && e.RowIndex >= 0)
+            {
+                markedDuplicates.Add(records.ElementAt(e.RowIndex));
+                if (!btnUndo.Enabled)
+                    btnUndo.Enabled = true;
+                records.RemoveAt(e.RowIndex);
+                UpdateGridView();
+                UpdateStatistics();
+            }
+        }
+
+        private void btnUndo_Click(object sender, EventArgs e)
+        {
+            if (markedDuplicates.Count > 0)
+            {
+                string lastDuplicate = markedDuplicates.Last();
+                records.Add(lastDuplicate);
+                markedDuplicates.RemoveAt(markedDuplicates.IndexOf(markedDuplicates.Last()));
+                if (markedDuplicates.Count <= 0)
+                    btnUndo.Enabled = false;
+                UpdateGridView();
+                UpdateStatistics();
+            }
+        }
+
+        private void UpdateStatistics()
+        {
+            //Display statistics
+            lblSearches.Text = searchUris.Count.ToString();
+            lblDuplicates.Text = (duplicatesFound + markedDuplicates.Count).ToString();
+            lblUniques.Text = records.Count.ToString();
+        }
+
     }
 }
