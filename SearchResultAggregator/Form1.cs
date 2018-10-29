@@ -19,11 +19,7 @@ namespace SearchResultAggregator
     public partial class Form1 : Form
     {
         private List<string> searchUris;
-
         private List<Record> records;        
-        private List<Record> markedDuplicates;
-        private List<Record> markedTitleAbst;
-        private List<Record> markedFullText;
 
         private int totalRecordsHit, duplicatesFound;
 
@@ -32,16 +28,19 @@ namespace SearchResultAggregator
             InitializeComponent();
             records = new List<Record>();
             searchUris = new List<string>();
-            markedDuplicates = new List<Record>();
             totalRecordsHit = 0;
             duplicatesFound = 0;
             lblCopied.Text = "";
 
             //Test - remove me
-            records.Add(new Record("Study 1", "www.google.com"));
-            records.Add(new Record("Study 2", "www.google.com"));
-            records.Add(new Record("Study 3", "www.google.com"));
-            records.Add(new Record("Study 3", "www.google.com"));
+            for(int i = 0; i < 200; i++)
+            {
+                records.Add(new Record("Study 1", "www.google.com"));
+                records.Add(new Record("Study 2", "www.google.com"));
+                records.Add(new Record("Study 3", "www.google.com"));
+                records.Add(new Record("Study 3", "www.google.com"));
+            }
+            
             UpdateGridView();
             UpdateStatistics();
             //End test
@@ -56,8 +55,27 @@ namespace SearchResultAggregator
 
             foreach(var record in records)
             {
-                dataGridView1.Rows.Add(new object[] { "", "", "", record.Title });
+                var row = new DataGridViewRow();
+                var titleCell = new DataGridViewLinkCell();
+                titleCell.Value = record.Title;
+                row.Cells.Add(titleCell);
+                switch (record.Status)
+                {
+                    case Status.DiscardedFullText: {
+                            row.DefaultCellStyle.BackColor = Color.LightGreen;
+                        }break;
+                    case Status.DiscardedTitleAbs:
+                        {
+                            row.DefaultCellStyle.BackColor = Color.LightBlue;
+                        }break;
+                    case Status.Duplicate:
+                        {
+                            row.DefaultCellStyle.BackColor = Color.Red;
+                        }break;
+                }
+                dataGridView1.Rows.Add(row);
             }
+            dataGridView1.ClearSelection();
         }
 
         private List<string> GetSearchUris()
@@ -180,7 +198,6 @@ namespace SearchResultAggregator
 
         private PubMedOptions GetPubMedOptions()
         {
-
             PubMedOptions pmo = new PubMedOptions(
                chkAbstract.Checked,
                chkFreeFull.Checked,
@@ -199,13 +216,8 @@ namespace SearchResultAggregator
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             DataGridView dgv = (DataGridView)sender;
-            //If we have clicked a button 
-            if(dgv.Columns[e.ColumnIndex] is DataGridViewButtonColumn  && e.RowIndex >= 0)
-            {
-                HandleButtonActions(e);
-            }
             //If we have clicked a link
-            else if (dgv.Columns[e.ColumnIndex] is DataGridViewLinkColumn && e.RowIndex >= 0)
+            if (dgv.Columns[e.ColumnIndex] is DataGridViewLinkColumn && e.RowIndex >= 0)
             {
                 Record record = records.ElementAt(e.RowIndex);
                 if(record.Link != null)
@@ -216,113 +228,6 @@ namespace SearchResultAggregator
             }
         }
 
-        private void HandleButtonActions(DataGridViewCellEventArgs e)
-        {
-            DataGridViewButtonCell button =
-                ((DataGridViewButtonCell)dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex]);
-            switch (e.ColumnIndex)
-            {
-                //Duplicate button
-                case 0:
-                    {
-                        if (button.Value.ToString().Equals("Unmark"))
-                        {
-                            //remove record from markedDuplicates list
-                            string recordTitle = dataGridView1[e.ColumnIndex, e.RowIndex].Value.ToString();
-                            markedDuplicates.Remove(records.SingleOrDefault(r => r.Title.Equals(recordTitle)));
-
-                            //remove colour from row
-                            dataGridView1.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.Gray;
-
-                            //restore button's original text
-                            button.Value = "Duplicate";
-
-                            //update grid view?
-                            //update statiistics
-                            UpdateStatistics();
-                        }
-                        else
-                        {
-                            markedDuplicates.Add(records.ElementAt(e.RowIndex));
-                            //if (!btnUndo.Enabled)
-                            //    btnUndo.Enabled = true;
-                            //dataGridView1[e.ColumnIndex, e.RowIndex].Value = "Unmark";
-                            ((DataGridViewButtonCell)dataGridView1[e.ColumnIndex, e.RowIndex]).Value = "Unmark";
-                            //records.RemoveAt(e.RowIndex);
-                            UpdateGridView();
-                            UpdateStatistics();
-                        }
-                        
-                    }
-                    break;
-                //Mark as discarded - title & abstract
-                case 1:
-                    {
-                        if (button.Value.ToString().Equals("Unmark"))
-                        {
-                            //remove record from markedDuplicates list
-                            string recordTitle = dataGridView1[e.ColumnIndex, e.RowIndex].Value.ToString();
-                            markedTitleAbst.Remove(records.SingleOrDefault(r => r.Title.Equals(recordTitle)));
-
-                            //remove colour from row
-                            dataGridView1.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.Gray;
-
-                            //restore button's original text
-                            button.Value = "Title & Abs.";
-
-                            //update grid view?
-                            //update statiistics
-                            UpdateStatistics();
-                        }
-                        else
-                        {
-                            markedTitleAbst.Add(records.ElementAt(e.RowIndex));
-                            //if (!btnUndo.Enabled)
-                            //    btnUndo.Enabled = true;
-                            button.Value = "Unmark";
-                            //records.RemoveAt(e.RowIndex);
-                            UpdateGridView();
-                            UpdateStatistics();
-                        }
-
-                    }
-                    break;
-                //Mark as discarded - full text
-                case 2:
-                    {
-                        if (button.Value.ToString().Equals("Unmark"))
-                        {
-
-                        }
-                        else
-                        {
-                            markedFullText.Add(records.ElementAt(e.RowIndex));
-                            //if (!btnUndo.Enabled)
-                            //    btnUndo.Enabled = true;
-                            button.Value = "Full Text";
-                            //records.RemoveAt(e.RowIndex);
-                            UpdateGridView();
-                            UpdateStatistics();
-                        }
-                    }
-                    break;
-            }
-        }
-
-        //private void btnUndo_Click(object sender, EventArgs e)
-        //{
-        //    if (markedDuplicates.Count > 0)
-        //    {
-        //        Record lastDuplicate = markedDuplicates.Last();
-        //        records.Add(lastDuplicate);
-        //        markedDuplicates.RemoveAt(markedDuplicates.IndexOf(markedDuplicates.Last()));
-        //        if (markedDuplicates.Count <= 0)
-        //            btnUndo.Enabled = false;
-        //        UpdateGridView();
-        //        UpdateStatistics();
-        //    }
-        //}
-
         private void dataGridView1_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             if(e.ColumnIndex > 0)
@@ -332,10 +237,6 @@ namespace SearchResultAggregator
                     dataGridView1[1, i].Selected = true;
                 }
             }
-            ////Selection whole column except header
-            //dataGridView1.SelectionMode = DataGridViewSelectionMode.ColumnHeaderSelect;
-            //DataGridViewColumn columnCells =  dataGridView1.Columns[e.ColumnIndex];
-            //dataGridView1[1, 0].Selected = false;
         }
 
         private void btnCopyUnmarked_Click(object sender, EventArgs e)
@@ -353,18 +254,76 @@ namespace SearchResultAggregator
             lblCopied.Text = "Discarded (Full Text) records copied to clip board.";
         }
 
+        private void btnMarkDuplicate_Click(object sender, EventArgs e)
+        {            
+            if (btnMarkDuplicate.Enabled)
+            {
+                btnMarkDuplicate.Enabled = false;
+                btnMarkDuplicate.BackColor = Color.LightGray;
+                UpdateSelectedRecordsStatus(Status.Duplicate);
+                btnMarkDuplicate.Enabled = true;
+                btnMarkDuplicate.BackColor = Color.Red;
+            }
+            
+        }
+
+        private void btnMarkDiscTitleAbs_Click(object sender, EventArgs e)
+        {
+            UpdateSelectedRecordsStatus(Status.DiscardedTitleAbs);
+        }
+
+        private void btnMarkDiscFullText_Click(object sender, EventArgs e)
+        {
+            UpdateSelectedRecordsStatus(Status.DiscardedFullText);
+        }
+
+        private void btnUnmark_Click(object sender, EventArgs e)
+        {
+            UpdateSelectedRecordsStatus(Status.Unmarked);
+        }
+
+        private void UpdateSelectedRecordsStatus(Status status)
+        {
+            if(dataGridView1.RowCount == records.Count)
+            {
+                //int selectedIndex = dataGridView1.SelectedRows[0].Index;
+                int selectedIndex = dataGridView1.CurrentRow.Index;
+                Record curRecord = records[selectedIndex];
+                Record newRecord = curRecord;
+                newRecord.Status = status;
+                records[selectedIndex] = newRecord;
+
+                UpdateGridView();
+
+                dataGridView1.ClearSelection();
+                //dataGridView1.CurrentCell = dataGridView1.Rows[selectedIndex].Cells[0];
+
+                dataGridView1.FirstDisplayedScrollingRowIndex = dataGridView1.Rows[selectedIndex].Index;
+            }
+        }
+
+        private void dataGridView1_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            btnMarkDuplicate.Enabled = true;
+            dataGridView1.ClearSelection();
+        }
 
         private void UpdateStatistics()
         {
+            int duplicatesMarked = records.Where(r => r.Status == Status.Duplicate).Count();
+            int discFullTextMarked = records.Where(r => r.Status == Status.DiscardedFullText).Count();
+            int discTitleAbstract = records.Where(r => r.Status == Status.DiscardedTitleAbs).Count();
+            int unmarked = records.Where(r => r.Status == Status.Unmarked).Count();
+
             //Display statistics
             lblSearches.Text = searchUris.Count.ToString();
-            lblDuplicates.Text = (duplicatesFound + markedDuplicates.Count).ToString();
-            lblUniques.Text = (records.Count - markedDuplicates.Count).ToString();
-            lblTitleAbs.Text = markedTitleAbst.Count.ToString();
-            lblFullText.Text = markedFullText.Count.ToString();
-            lblUnmarked.Text = 
-                (records.Count - (markedDuplicates.Count + markedFullText.Count + markedTitleAbst.Count))
-                    .ToString();       
+
+            lblDuplicates.Text = (duplicatesFound + duplicatesMarked).ToString();
+            lblUniques.Text = (records.Count - duplicatesMarked).ToString();
+
+            lblTitleAbs.Text = discTitleAbstract.ToString();
+            lblFullText.Text = discFullTextMarked.ToString();
+            lblUnmarked.Text = unmarked.ToString();       
         }
 
     }
