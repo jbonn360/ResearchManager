@@ -1,5 +1,4 @@
-﻿using SimpleBrowser;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-using NHtmlUnit;
 using System.Threading;
 using System.Web;
 using System.Configuration;
@@ -109,8 +107,15 @@ namespace SearchResultAggregator
             var result = new List<Record>();
             foreach (var record in records)
             {
+                string title = record.Text;
                 string link = record.FindElement(By.TagName("a")).GetAttribute("href");
-                result.Add(new Record(record.Text, link));
+
+                if (title.EndsWith("."))
+                {
+                    title = title.Remove(title.Length - 1);
+                }
+
+                result.Add(new Record(title, link));
             }
 
             return result;
@@ -238,7 +243,12 @@ namespace SearchResultAggregator
                         title = titleContainer.Text.Replace("[CITATION] ", "");
                         title = title + " [CITATION]";
                     }
-                        
+
+                    if (title.EndsWith("."))
+                    {
+                        title = title.Remove(title.Length - 1);
+                    }
+
                     result.Add(new Record(title,link));
                 }
 

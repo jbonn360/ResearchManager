@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
-using SimpleBrowser;
 using System.IO;
 using System.Diagnostics;
 using System.Configuration;
@@ -214,7 +213,7 @@ namespace SearchResultAggregator
             dataGridView1.Rows.Clear();
 
             //Sorting records
-            records = records.OrderBy(r => r.Title).ToList();
+            records = records.OrderBy(r => r.Title.ToLower()).ToList();
 
             for (int i = 0; i < records.Count; i++)
             {
