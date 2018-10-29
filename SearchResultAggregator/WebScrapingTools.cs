@@ -157,8 +157,13 @@ namespace SearchResultAggregator
                     if(title.StartsWith("[") && title.EndsWith("]."))
                     {
                         title = title.Remove(0, 1);
-                        title = title.Remove(title.Length-2, 1);
+                        title = title.Remove(title.Length-2, 2);
                     }
+                    if (title.EndsWith("."))
+                    {
+                        title = title.Remove(title.Length - 1);
+                    }
+
                     string link = recordTitleElement.GetAttribute("href");
                     result.Add(new Record(title, link));
                 }

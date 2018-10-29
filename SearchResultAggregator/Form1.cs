@@ -31,83 +31,27 @@ namespace SearchResultAggregator
             totalRecordsHit = 0;
             duplicatesFound = 0;
             lblCopied.Text = "";
+            lblError.Text = "";
+            dtTo.Value = DateTime.Now;
 
             //Test - remove me
-            for(int i = 0; i < 200; i++)
-            {
-                records.Add(new Record("Study 1", "www.google.com"));
-                records.Add(new Record("Study 2", "www.google.com"));
-                records.Add(new Record("Study 3", "www.google.com"));
-                records.Add(new Record("Study 3", "www.google.com"));
-            }
-            
+            //for (int i = 0; i < 200; i++)
+            //{
+            //records.Add(new Record("Study 1", "www.google.com"));
+            //    records.Add(new Record("Study 2", "www.google.com"));
+            //    records.Add(new Record("Study 3", "www.google.com"));
+            //    records.Add(new Record("Study 3", "www.google.com"));
+            //}
+
             UpdateGridView();
             UpdateStatistics();
             //End test
         }
 
-        private void UpdateGridView()
-        {
-            dataGridView1.Rows.Clear();
-
-            //Sorting records
-            records = records.OrderBy(r => r.Title).ToList();
-
-            foreach(var record in records)
-            {
-                var row = new DataGridViewRow();
-                var titleCell = new DataGridViewLinkCell();
-                titleCell.Value = record.Title;
-                row.Cells.Add(titleCell);
-                switch (record.Status)
-                {
-                    case Status.DiscardedFullText: {
-                            row.DefaultCellStyle.BackColor = Color.LightGreen;
-                        }break;
-                    case Status.DiscardedTitleAbs:
-                        {
-                            row.DefaultCellStyle.BackColor = Color.LightBlue;
-                        }break;
-                    case Status.Duplicate:
-                        {
-                            row.DefaultCellStyle.BackColor = Color.Red;
-                        }break;
-                }
-                dataGridView1.Rows.Add(row);
-            }
-            dataGridView1.ClearSelection();
-        }
-
-        private List<string> GetSearchUris()
-        {
-            const int BufferSize = 128;
-            List<string> result = new List<string>();
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Searches.txt");
-            using (var fileStream = File.OpenRead(filePath))
-            {
-                using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
-                {
-                    
-                    string line;
-                    while ((line = streamReader.ReadLine()) != null)
-                    {
-                        if (line.StartsWith("search.url."))
-                        {
-                            string[] splitLine = line.Split(new[] { '=' }, 2);
-                            string uri = splitLine[1];
-                            result.Add(uri);
-                        }
-                        else
-                            continue;
-                    }
-                }
-            }
-            return result;
-        }
-
+        #region Component Methods
         private void btnGo_Click(object sender, EventArgs e)
         {
-            searchUris = GetSearchUris();            
+            searchUris = GetSearchUris();
 
             string errorMessage = "";
             lblError.Text = "";
@@ -147,7 +91,209 @@ namespace SearchResultAggregator
             lblTotalHits.Text = totalRecordsHit.ToString();
             UpdateStatistics();
 
-            UpdateGridView();                               
+            UpdateGridView();
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridView dgv = (DataGridView)sender;
+            //If we have clicked a link
+            if (dgv.Columns[e.ColumnIndex] is DataGridViewLinkColumn && e.RowIndex >= 0)
+            {
+                Record record = records.ElementAt(e.RowIndex);
+                if (record.Link != null)
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo(record.Link);
+                    Process.Start(psi);
+                }
+            }
+        }
+
+        private void dataGridView1_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.ColumnIndex > 0)
+            {
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                {
+                    dataGridView1[1, i].Selected = true;
+                }
+            }
+        }
+
+        private void btnCopyUnmarked_Click(object sender, EventArgs e)
+        {
+            var recordsList = records.Where(r => r.Status == Status.Unmarked).ToList();
+            if (recordsList.Count > 0)
+            {
+                string recordsString = RecordListToString(recordsList);
+                Clipboard.SetText(recordsString);
+                lblCopied.Text = "Unmarked records copied to clipboard.";
+            }
+            else
+                lblCopied.Text = "There is nothing to copy.";
+
+        }
+
+        private void btnCopyTitleAbs_Click(object sender, EventArgs e)
+        {
+            var recordsList = records.Where(r => r.Status == Status.DiscardedTitleAbs).ToList();
+            if (recordsList.Count > 0)
+            {
+                string recordsString = RecordListToString(recordsList);
+                Clipboard.SetText(recordsString);
+                lblCopied.Text = "Discarded (Title & Abstract) records \ncopied to clipboard.";
+            }
+            else
+                lblCopied.Text = "There is nothing to copy.";
+        }
+
+        private void btnCopyFullText_Click(object sender, EventArgs e)
+        {
+            var recordsList = records.Where(r => r.Status == Status.DiscardedFullText).ToList();
+            if (recordsList.Count > 0)
+            {
+                string recordsString = RecordListToString(recordsList);
+                Clipboard.SetText(recordsString);
+                lblCopied.Text = "Discarded (Full Text) records copied \nto clipboard.";
+            }
+            else
+                lblCopied.Text = "There is nothing to copy.";
+        }
+
+        private void btnMarkDuplicate_Click(object sender, EventArgs e)
+        {
+            btnMarkDuplicate.Enabled = false;
+            UpdateSelectedRecordsStatus(Status.Duplicate);
+        }
+
+        private void btnMarkDiscTitleAbs_Click(object sender, EventArgs e)
+        {
+            btnMarkDiscTitleAbs.Enabled = false;
+            UpdateSelectedRecordsStatus(Status.DiscardedTitleAbs);
+        }
+
+        private void btnMarkDiscFullText_Click(object sender, EventArgs e)
+        {
+            btnMarkDiscFullText.Enabled = false;
+            UpdateSelectedRecordsStatus(Status.DiscardedFullText);
+        }
+
+        private void btnUnmark_Click(object sender, EventArgs e)
+        {
+            btnUnmark.Enabled = false;
+            UpdateSelectedRecordsStatus(Status.Unmarked);
+        }
+
+        private void chkUseDateFilter_CheckedChanged(object sender, EventArgs e)
+        {
+            dtTo.Enabled = chkUseDateFilter.Checked;
+            dtFrom.Enabled = chkUseDateFilter.Checked;
+        }
+
+        private void dataGridView1_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dataGridView1.Rows.Count > 1)
+            {
+                btnMarkDiscFullText.Enabled = true;
+                btnMarkDiscTitleAbs.Enabled = true;
+                btnMarkDuplicate.Enabled = true;
+
+                int selectedIndex = dataGridView1.CurrentRow.Index;
+                if (records[selectedIndex].Status != Status.Unmarked)
+                    btnUnmark.Enabled = true;
+                else
+                    btnUnmark.Enabled = false;
+
+            }
+        }
+        #endregion
+
+        #region Function Methods
+        private void UpdateGridView()
+        {
+            dataGridView1.Rows.Clear();
+
+            //Sorting records
+            records = records.OrderBy(r => r.Title).ToList();
+
+            for (int i = 0; i < records.Count; i++)
+            {
+                //Getting record to update
+                Record record = records[i];
+
+                //Creating the row
+                var row = new DataGridViewRow();
+                var titleCell = new DataGridViewLinkCell();
+                titleCell.Value = record.Title;
+                row.Cells.Add(titleCell);
+                SetRowColour(ref row, record.Status);
+                dataGridView1.Rows.Add(row);
+            }
+            //dataGridView1.ClearSelection();
+        }
+
+        private void UpdateGridViewRowAt(int index)
+        {
+            //Getting record to update
+            Record record = records[index];
+
+            //Creating the row
+            var row = dataGridView1.Rows[index];
+            SetRowColour(ref row, record.Status);
+            
+        }
+
+        private void SetRowColour(ref DataGridViewRow row, Status recordStatus){
+            switch (recordStatus)
+            {
+                case Status.DiscardedFullText:
+                    {
+                        row.DefaultCellStyle.BackColor = Color.LightGreen;
+                    }
+                    break;
+                case Status.DiscardedTitleAbs:
+                    {
+                        row.DefaultCellStyle.BackColor = Color.LightBlue;
+                    }
+                    break;
+                case Status.Duplicate:
+                    {
+                        row.DefaultCellStyle.BackColor = Color.Red;
+                    }
+                    break;
+                case Status.Unmarked:
+                    {
+                        row.DefaultCellStyle.BackColor = Color.White;
+                    }
+                    break;
+            }
+        } 
+           
+        private List<string> GetSearchUris()
+        {
+            const int BufferSize = 128;
+            List<string> result = new List<string>();
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Searches.txt");
+            using (var fileStream = File.OpenRead(filePath))
+            {
+                using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
+                {
+                    
+                    string line;
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        if (line.StartsWith("search.url."))
+                        {
+                            string[] splitLine = line.Split(new[] { '=' }, 2);
+                            string uri = splitLine[1];
+                            result.Add(uri);
+                        }
+                        else
+                            continue;
+                    }
+                }
+            }
+            return result;
         }
 
         private List<Record> GetData(string uri, ref string errorMessage)
@@ -184,18 +330,6 @@ namespace SearchResultAggregator
             return records;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            lblError.Text = "";
-            dtTo.Value = DateTime.Now;
-        }
-
-        private void chkUseDateFilter_CheckedChanged(object sender, EventArgs e)
-        {
-            dtTo.Enabled = chkUseDateFilter.Checked;
-            dtFrom.Enabled = chkUseDateFilter.Checked;
-        }
-
         private PubMedOptions GetPubMedOptions()
         {
             PubMedOptions pmo = new PubMedOptions(
@@ -213,75 +347,6 @@ namespace SearchResultAggregator
             return pmo;
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            DataGridView dgv = (DataGridView)sender;
-            //If we have clicked a link
-            if (dgv.Columns[e.ColumnIndex] is DataGridViewLinkColumn && e.RowIndex >= 0)
-            {
-                Record record = records.ElementAt(e.RowIndex);
-                if(record.Link != null)
-                {
-                    ProcessStartInfo psi = new ProcessStartInfo(record.Link);
-                    Process.Start(psi);
-                }                
-            }
-        }
-
-        private void dataGridView1_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            if(e.ColumnIndex > 0)
-            {
-                for(int i = 0; i < dataGridView1.RowCount; i++)
-                {
-                    dataGridView1[1, i].Selected = true;
-                }
-            }
-        }
-
-        private void btnCopyUnmarked_Click(object sender, EventArgs e)
-        {
-            lblCopied.Text = "Unmarked records copied to clip board.";
-        }
-
-        private void btnCopyTitleAbs_Click(object sender, EventArgs e)
-        {
-            lblCopied.Text = "Discarded (Title & Abstract) records copied to clip board.";
-        }
-
-        private void btnCopyFullText_Click(object sender, EventArgs e)
-        {
-            lblCopied.Text = "Discarded (Full Text) records copied to clip board.";
-        }
-
-        private void btnMarkDuplicate_Click(object sender, EventArgs e)
-        {            
-            if (btnMarkDuplicate.Enabled)
-            {
-                btnMarkDuplicate.Enabled = false;
-                btnMarkDuplicate.BackColor = Color.LightGray;
-                UpdateSelectedRecordsStatus(Status.Duplicate);
-                btnMarkDuplicate.Enabled = true;
-                btnMarkDuplicate.BackColor = Color.Red;
-            }
-            
-        }
-
-        private void btnMarkDiscTitleAbs_Click(object sender, EventArgs e)
-        {
-            UpdateSelectedRecordsStatus(Status.DiscardedTitleAbs);
-        }
-
-        private void btnMarkDiscFullText_Click(object sender, EventArgs e)
-        {
-            UpdateSelectedRecordsStatus(Status.DiscardedFullText);
-        }
-
-        private void btnUnmark_Click(object sender, EventArgs e)
-        {
-            UpdateSelectedRecordsStatus(Status.Unmarked);
-        }
-
         private void UpdateSelectedRecordsStatus(Status status)
         {
             if(dataGridView1.RowCount == records.Count)
@@ -293,19 +358,20 @@ namespace SearchResultAggregator
                 newRecord.Status = status;
                 records[selectedIndex] = newRecord;
 
-                UpdateGridView();
+                int firstDisplayedIndex = dataGridView1.FirstDisplayedCell.RowIndex;
 
+                //UpdateGridView();
+                UpdateGridViewRowAt(selectedIndex);
+                UpdateStatistics();
+
+                
+                dataGridView1.CurrentCell = dataGridView1[0, selectedIndex];
                 dataGridView1.ClearSelection();
                 //dataGridView1.CurrentCell = dataGridView1.Rows[selectedIndex].Cells[0];
 
-                dataGridView1.FirstDisplayedScrollingRowIndex = dataGridView1.Rows[selectedIndex].Index;
-            }
-        }
+                dataGridView1.FirstDisplayedScrollingRowIndex = firstDisplayedIndex;
 
-        private void dataGridView1_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
-        {
-            btnMarkDuplicate.Enabled = true;
-            dataGridView1.ClearSelection();
+            }
         }
 
         private void UpdateStatistics()
@@ -326,18 +392,15 @@ namespace SearchResultAggregator
             lblUnmarked.Text = unmarked.ToString();       
         }
 
-    }
-
-    internal class RecordComparer : EqualityComparer<Record>
-    {
-        public override bool Equals(Record x, Record y)
+        private string RecordListToString(List<Record> list)
         {
-            return x.Title.Equals(y.Title);
+            StringBuilder sb = new StringBuilder();
+            foreach(var record in list)
+            {
+                sb.AppendLine(record.Title);
+            }
+            return sb.ToString();
         }
-
-        public override int GetHashCode(Record obj)
-        {
-            return base.GetHashCode();
-        }
+        #endregion
     }
 }
