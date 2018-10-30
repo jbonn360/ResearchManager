@@ -12,6 +12,8 @@ using System.IO;
 using System.Diagnostics;
 using System.Configuration;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace SearchResultAggregator
 {
@@ -21,6 +23,8 @@ namespace SearchResultAggregator
         private List<Record> records;        
 
         private int totalRecordsHit, duplicatesFound;
+
+        private string workSpaceFileLocation;
 
         public Form1()
         {
@@ -32,6 +36,7 @@ namespace SearchResultAggregator
             lblCopied.Text = "";
             lblError.Text = "";
             dtTo.Value = DateTime.Now;
+            workSpaceFileLocation = null;
 
             //Test - remove me
             //for (int i = 0; i < 200; i++)
@@ -86,10 +91,8 @@ namespace SearchResultAggregator
 
             //The ones which have been removed are duplicates
             duplicatesFound = totalRecordsHit - records.Count;
-
-            lblTotalHits.Text = totalRecordsHit.ToString();
+            
             UpdateStatistics();
-
             UpdateGridView();
         }
 
@@ -205,6 +208,52 @@ namespace SearchResultAggregator
 
             }
         }
+
+        private void loadTSMI_Click(object sender, EventArgs e)
+        {
+            WorkSpace ws = null;
+            //Open Dialog
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                //Set workSpaceFileLocation
+                workSpaceFileLocation = openFileDialog1.FileName;
+
+                //Load workspace
+                ws = LoadProgressFromFile(openFileDialog1.FileName); 
+            }  
+            
+            if(ws != null)
+            {
+                totalRecordsHit = ws.TotalRecordsHit;
+                duplicatesFound = ws.DuplicatesFound;
+                records = ws.Records;
+
+                UpdateStatistics();
+                UpdateGridView();
+            }
+        }
+
+        private void saveTSMI_Click(object sender, EventArgs e)
+        {
+            if (!String.IsNullOrEmpty(workSpaceFileLocation))
+            {
+                //Overwrite progress to the last opened file
+                SaveProgressToFile(workSpaceFileLocation);
+            }else
+            {
+                saveAsTSMI_Click(sender, e);
+            }      
+        }
+
+        private void saveAsTSMI_Click(object sender, EventArgs e)
+        {
+            //Open Dialog
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                SaveProgressToFile(saveFileDialog1.FileName);
+                workSpaceFileLocation = saveFileDialog1.FileName;
+            }
+        }
         #endregion
 
         #region Function Methods
@@ -228,7 +277,7 @@ namespace SearchResultAggregator
                 SetRowColour(ref row, record.Status);
                 dataGridView1.Rows.Add(row);
             }
-            //dataGridView1.ClearSelection();
+            dataGridView1.ClearSelection();
         }
 
         private void UpdateGridViewRowAt(int index)
@@ -388,7 +437,8 @@ namespace SearchResultAggregator
 
             lblTitleAbs.Text = discTitleAbstract.ToString();
             lblFullText.Text = discFullTextMarked.ToString();
-            lblUnmarked.Text = unmarked.ToString();       
+            lblUnmarked.Text = unmarked.ToString();
+            lblTotalHits.Text = totalRecordsHit.ToString();
         }
 
         private string RecordListToString(List<Record> list)
@@ -400,6 +450,71 @@ namespace SearchResultAggregator
             }
             return sb.ToString();
         }
+
+        private void SaveProgressToFile(string fileName)
+        {
+            WorkSpace ws = new WorkSpace();
+            ws.DuplicatesFound = duplicatesFound;
+            ws.TotalRecordsHit = totalRecordsHit;
+            ws.Records = records;
+
+            try
+            {
+                XmlDocument xmlDocument = new XmlDocument();
+                XmlSerializer serializer = new XmlSerializer(ws.GetType());
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    serializer.Serialize(stream, ws);
+                    stream.Position = 0;
+                    xmlDocument.Load(stream);
+                    xmlDocument.Save(fileName);
+                }
+            }catch(Exception e)
+            {
+                lblError.Text = e.Message;
+            }
+            
+        }
+
+        private WorkSpace LoadProgressFromFile(string fileName)
+        {
+            WorkSpace ws = new WorkSpace();
+            try
+            {
+                XmlDocument xmlDocument = new XmlDocument();
+                xmlDocument.Load(fileName);
+                string xmlString = xmlDocument.OuterXml;
+
+                using (StringReader read = new StringReader(xmlString))
+                {
+                    XmlSerializer serializer = new XmlSerializer(ws.GetType());
+                    using (XmlReader reader = new XmlTextReader(read))
+                    {
+                        ws = (WorkSpace)serializer.Deserialize(reader);
+                    }
+                }
+                return ws;
+                
+            }
+            catch (Exception e)
+            {
+                lblError.Text = e.Message;
+            }
+            return null;
+        }
         #endregion
+    }
+
+    [Serializable]
+    public class WorkSpace
+    {
+        public List<Record> Records { get; set; }
+        public int TotalRecordsHit { get; set; }
+        public int DuplicatesFound { get; set; }
+
+        public WorkSpace()
+        {
+
+        }
     }
 }
