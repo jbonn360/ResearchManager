@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace SearchResultAggregator
+namespace ResearchManager
 {
     static class Program
     {

@@ -12,7 +12,7 @@ using System.Threading;
 using System.Web;
 using System.Configuration;
 
-namespace SearchResultAggregator
+namespace ResearchManager
 {
     public class WebScrapingTools
     {

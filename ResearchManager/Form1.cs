@@ -15,7 +15,7 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace SearchResultAggregator
+namespace ResearchManager
 {
     public partial class Form1 : Form
     {
