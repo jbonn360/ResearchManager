@@ -252,14 +252,21 @@ namespace ResearchManager
                     result.Add(new Record(title,link));
                 }
 
-                IWebElement navigationDiv = driver.FindElement(By.Id("gs_n"));
-
-
-                //Checking if we're at the last page
-                if (navigationDiv.FindElements(By.CssSelector(".gs_ico.gs_ico_nav_next")).Count > 0)
+                //Checking if 'next button is present'
+                if(driver.FindElements(By.Id("gs_n")).Count > 0)
                 {
-                    IWebElement nextPageLink = navigationDiv.FindElement(By.CssSelector(".gs_ico.gs_ico_nav_next"));
-                    nextPageLink.Click();
+                    IWebElement navigationDiv = driver.FindElement(By.Id("gs_n"));
+                    //Checking if we're at the last page
+                    if (navigationDiv.FindElements(By.CssSelector(".gs_ico.gs_ico_nav_next")).Count > 0)
+                    {
+                        IWebElement nextPageLink = navigationDiv.FindElement(By.CssSelector(".gs_ico.gs_ico_nav_next"));
+                        nextPageLink.Click();
+                    }
+                    else
+                    {
+                        lastPage = true;
+                        break;
+                    }
                 }
                 else
                 {
